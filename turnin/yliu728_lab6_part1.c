@@ -1,7 +1,7 @@
 /*	Author: Yifei Liu
  *  Partner(s) Name: 
  *	Lab Section: 023
- *	Assignment: Lab 6  Exercise 2
+ *	Assignment: Lab 6  Exercise 1
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -72,72 +72,54 @@ ISR(TIMER1_COMPA_vect)
 		_avr_timer_cntcurr = _avr_timer_M;
 	}
 }
-enum LA_States { LA_SMStart, LA_s0, LA_s1,Wait,Wait1} LA_State;
-unsigned char tmpb,t[4]={0x01,0x02,0x04,0x02},i;
-unsigned char A0;
+enum LA_States { LA_SMStart, LA_s0, LA_s1, LA_s2, LA_s3} LA_State;
+unsigned char tmpb;
 void Tick()
 {
   switch(LA_State) {   // Transitions
      case LA_SMStart:  // Initial transition
         LA_State = LA_s0;
-	i=0;
         break;
 
      case LA_s0:
-        if(A0){
-	   LA_State = Wait;
-	}
-	else{
-	   i++;
-	}	
+        LA_State = LA_s1;   
         break;
-     case Wait:
-	if(A0){
-	   LA_State = Wait;
-	}
-	else{
-	   LA_State = LA_s1;
-	}
-	break;
+
      case LA_s1:
-	if(A0){
-	   LA_State = Wait1;
-	   i=0;
-	}
-	else{
-	   LA_State = LA_s1;
-	}
+        LA_State = LA_s2;
         break;
-     case Wait1:
-       if(A0){
-          i++;
-       }
-       else{
-          LA_State=LA_s0;
-	  i++;	  
-       }      
-      break; 
+
+     case LA_s2:
+        LA_State = LA_s0;
+        break;
+
      default:
         LA_State = LA_SMStart;
         break;
   } // Transitions
 
   switch(LA_State) {   // State actions
+     case LA_s0:
+	tmpb=0x01;
+        break;
+     case LA_s1:
+	tmpb=0x02;
+        break;
+     case LA_s2:
+	tmpb=0x04;
+	break;
      default:
-	tmpb=t[i%4];
         break;
    } // State actions
 }
 int main(void) {
     /* Insert DDR and PORT initializations */
     DDRB=0xFF;PORTB=0x00;
-    DDRA=0x00;PORTA=0xFF;
     /* Insert your solution below */
-    TimerSet(300);
+    TimerSet(1000);
     TimerOn();
     tmpb=0;
     while (1) {
-	A0=(~PINA)&0x01;
 	Tick();
         while(!TimerFlag);
 	TimerFlag=0;
